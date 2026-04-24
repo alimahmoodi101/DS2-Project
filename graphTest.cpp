@@ -12,9 +12,9 @@ static constexpr double INF = 1e18;
 static constexpr double EPS = 1e-9;
 
 void section(const char* title) {
-    std::cout << "\n══════════════════════════════════════════════════════\n";
+    std::cout << "\n----------------------------------------\n";
     std::cout << "  " << title << "\n";
-    std::cout << "══════════════════════════════════════════════════════\n";
+    std::cout << "------------------------------------------\n";
 }
 
 bool nearly_equal(double a, double b) {
@@ -72,21 +72,21 @@ void print_result(const char* label, const DijkstraResult& r, int n) {
 
 void print_path(const DijkstraResult& r, int src, int dst) {
     std::vector<int> p = r.path(dst);
-    std::cout << "    path " << src << "→" << dst << ": ";
+    std::cout << "    path " << src << "->" << dst << ": ";
     if (p.empty()) { std::cout << "UNREACHABLE\n"; return; }
     for (int i = 0; i < (int)p.size(); ++i) {
-        if (i) std::cout << " → ";
+        if (i) std::cout << " -> ";
         std::cout << p[i];
     }
     std::cout << "  (dist=" << r.dist[dst] << ")\n";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TEST 1 — Linear chain: 0→1→2→3→4
+// TEST 1 — Linear chain: 0->1->2->3->4
 // Expected: d[0]=0, d[1]=1, d[2]=3, d[3]=6, d[4]=10
 // ─────────────────────────────────────────────────────────────────────────────
 void test_linear_chain() {
-    section("TEST 1 – Linear chain (directed)");
+    section("TEST 1 - Linear chain (directed)");
 
     Graph g(5);
     g.add_edge(0, 1, 1);
@@ -117,7 +117,7 @@ void test_linear_chain() {
 //   Expected: d[0]=0, d[1]=8, d[2]=9, d[3]=5, d[4]=7
 // ─────────────────────────────────────────────────────────────────────────────
 void test_clrs_graph() {
-    section("TEST 2 – CLRS-style graph (directed, known answer)");
+    section("TEST 2 - CLRS-style graph (directed, known answer)");
 
     Graph g(5);
     g.add_edge(0, 1, 10);
@@ -150,7 +150,7 @@ void test_clrs_graph() {
 //   Two disconnected components: {0,1,2} and {3,4}
 // ─────────────────────────────────────────────────────────────────────────────
 void test_unreachable() {
-    section("TEST 3 – Disconnected graph (unreachable nodes)");
+    section("TEST 3 - Disconnected graph (unreachable nodes)");
 
     Graph g(5);
     g.add_edge(0, 1, 1);
@@ -178,7 +178,7 @@ void test_unreachable() {
 //   Dense graph with shortcuts: source=0
 // ─────────────────────────────────────────────────────────────────────────────
 void test_multiple_relaxations() {
-    section("TEST 4 – Multiple relaxations (high decrease-key count)");
+    section("TEST 4 - Multiple relaxations (high decrease-key count)");
 
     // 6-node graph where shortest paths require several updates
     //        1
@@ -188,7 +188,7 @@ void test_multiple_relaxations() {
     //    4       2
     //      \   /
     //        3
-    // Plus a shortcut 0→5 with weight 100 (should be beaten)
+    // Plus a shortcut 0->5 with weight 100 (should be beaten)
     Graph g(6);
     g.add_edge(0, 1, 1);
     g.add_edge(0, 3, 4);
@@ -200,11 +200,11 @@ void test_multiple_relaxations() {
     g.add_edge(4, 5, 1);
 
     // Expected shortest paths from 0:
-    // d[1] = 1   (0→1)
-    // d[2] = 4   (0→1→2)  or  (0→3→2 = 4+1=5), so 0→1→2=4
-    // d[3] = 4   (0→3)
-    // d[4] = 5   (0→1→2→4 = 1+3+1=5)  or  (0→1→4=1+5=6), so 5
-    // d[5] = 6   (0→1→2→4→5 = 6)  beats 100
+    // d[1] = 1   (0->1)
+    // d[2] = 4   (0->1->2)  or  (0->3->2 = 4+1=5), so 0->1->2=4
+    // d[3] = 4   (0->3)
+    // d[4] = 5   (0->1->2->4 = 1+3+1=5)  or  (0->1->4=1+5=6), so 5
+    // d[5] = 6   (0->1->2->4->5 = 6)  beats 100
     auto bin = g.dijkstra_binary(0);
     auto fib = g.dijkstra_fib(0);
 
@@ -221,7 +221,7 @@ void test_multiple_relaxations() {
 // TEST 5 — Single node graph
 // ─────────────────────────────────────────────────────────────────────────────
 void test_single_node() {
-    section("TEST 5 – Single node graph");
+    section("TEST 5 - Single node graph");
 
     Graph g(1);
     auto bin = g.dijkstra_binary(0);
@@ -244,7 +244,7 @@ void test_single_node() {
 //   Expected distances from 0: Manhattan distance to each node
 // ─────────────────────────────────────────────────────────────────────────────
 void test_grid_graph() {
-    section("TEST 6 – Undirected 3×3 grid (all weights=1)");
+    section("TEST 6 - Undirected 3×3 grid (all weights=1)");
 
     Graph g(9);
     // Horizontal edges
@@ -265,14 +265,14 @@ void test_grid_graph() {
     print_result("Fib Heap   ", fib, 9);
 
     // Manhattan distances from (0,0):
-    // node 0=(0,0)→0, 1=(0,1)→1, 2=(0,2)→2
-    // node 3=(1,0)→1, 4=(1,1)→2, 5=(1,2)→3
-    // node 6=(2,0)→2, 7=(2,1)→3, 8=(2,2)→4
+    // node 0=(0,0)->0, 1=(0,1)->1, 2=(0,2)->2
+    // node 3=(1,0)->1, 4=(1,1)->2, 5=(1,2)->3
+    // node 6=(2,0)->2, 7=(2,1)->3, 8=(2,2)->4
     verify(bin, fib, {0,1,2,1,2,3,2,3,4}, "3x3 grid distances");
 
-    std::cout << "  Path 0→8 (binary): ";
+    std::cout << "  Path 0->8 (binary): ";
     auto p = bin.path(8);
-    for (int i = 0; i < (int)p.size(); ++i) { if(i) std::cout<<"→"; std::cout<<p[i]; }
+    for (int i = 0; i < (int)p.size(); ++i) { if(i) std::cout<<"->"; std::cout<<p[i]; }
     std::cout << "\n";
 }
 
@@ -282,7 +282,7 @@ void test_grid_graph() {
 //   (since they process identical graph with identical relaxation order)
 // ─────────────────────────────────────────────────────────────────────────────
 void test_decrease_key_count() {
-    section("TEST 7 – decrease-key counts match between both variants");
+    section("TEST 7 - decrease-key counts match between both variants");
 
     Graph g(6);
     g.add_edge(0, 1, 2); g.add_edge(0, 2, 4);
@@ -305,9 +305,9 @@ void test_decrease_key_count() {
 
 
 int main() {
-    std::cout << "╔══════════════════════════════════════════════════════╗\n";
-    std::cout << "║     Dijkstra Test Suite (Binary Heap vs Fib Heap)    ║\n";
-    std::cout << "╚══════════════════════════════════════════════════════╝\n";
+    std::cout << "--------------------------------------------------------------------\n";
+    std::cout << "|          Dijkstra Test Suite (Binary Heap vs Fib Heap)            |\n";
+    std::cout << "--------------------------------------------------------------------\n";
 
     test_linear_chain();
     test_clrs_graph();
@@ -317,9 +317,9 @@ int main() {
     test_grid_graph();
     test_decrease_key_count();
 
-    std::cout << "\n══════════════════════════════════════════════════════\n";
-    std::cout << "  All Dijkstra tests PASSED\n";
-    std::cout << "  Both implementations produce identical results.\n";
-    std::cout << "══════════════════════════════════════════════════════\n";
+    std::cout << "\n--------------------------------------------------------------------\n";
+    std::cout << "|                    All Dijkstra tests PASSED!                      |\n";
+    std::cout << "|           Both implementations produce identical results           |\n";
+    std::cout << "--------------------------------------------------------------------\n";
     return 0;
 }

@@ -7,14 +7,14 @@
 
 //helper func
 void section(const char* title) {
-    std::cout << "\n══════════════════════════════════════════\n";
+    std::cout << "\n----------------------------------------\n";
     std::cout << "  " << title << "\n";
-    std::cout << "══════════════════════════════════════════\n";
+    std::cout << "------------------------------------------\n";
 }
 
 // Test 1: Basic min-order extraction
 void test_basic_order() {
-    section("TEST 1 – Basic min-order extraction");
+    section("TEST 1 - Basic min-order extraction");
 
     FibHeap h;
     h.insert(0,10.0);
@@ -40,7 +40,7 @@ void test_basic_order() {
 
 // Test 2: decrease_key — verify heap property is restored
 void test_decrease_key() {
-    section("TEST 2 – decrease_key");
+    section("TEST 2 - decrease_key");
 
     FibHeap h;
     FibNode* n0 = h.insert(0,100.0);
@@ -51,20 +51,20 @@ void test_decrease_key() {
     std::cout << "Before decrease_key:\n";
     h.print_roots();
 
-    // Decrease id=2 from 80 → 5 (should become the new minimum)
+    // Decrease id=2 from 80 -> 5 (should become the new minimum)
     h.decrease_key(n2, 5.0);
     std::cout << "\nAfter decrease_key(id=2, key=5):\n";
     h.print_roots();
 
     FibNode* top = h.extract_min();
-    std::cout << "\nextract_min → id=" << top->id << "  key=" << top->key << "\n";
+    std::cout << "\nextract_min -> id=" << top->id << "  key=" << top->key << "\n";
     assert(top->id == 2 && top->key == 5.0 && "ERROR: expected id=2, key=5");
     delete top;
 
-    // Now decrease id=0 from 100 → 8 (should come out before 30 and 50)
+    // Now decrease id=0 from 100 -> 8 (should come out before 30 and 50)
     h.decrease_key(n0, 8.0);
     top = h.extract_min();
-    std::cout << "extract_min → id=" << top->id << "  key=" << top->key << "\n";
+    std::cout << "extract_min -> id=" << top->id << "  key=" << top->key << "\n";
     assert(top->id == 0 && top->key == 8.0 && "ERROR: expected id=0, key=8");
     delete top;
 
@@ -79,7 +79,7 @@ void test_decrease_key() {
 // Test 3: Consolidation correctness — after extract_min, trees are merged
 //         We check that the degree structure is consistent (no two roots with same degree)
 void test_consolidation() {
-    section("TEST 3 – Consolidation after extract_min");
+    section("TEST 3 - Consolidation after extract_min");
 
     FibHeap h;
     // Insert enough nodes that consolidation must do real work
@@ -112,7 +112,7 @@ void test_consolidation() {
 
 // Test 4: Cascading cut — cut a node, then cut its parent, verify marks
 void test_cascading_cut() {
-    section("TEST 4 – Cascading cut behaviour");
+    section("TEST 4 - Cascading cut behaviour");
 
     // Build a known structure by forcing consolidation:
     // Insert 4 nodes, extract_min to trigger consolidation,
@@ -128,7 +128,7 @@ void test_cascading_cut() {
     FibNode* n7 = h.insert(7, 8.0);
     (void)n7;
 
-    // Extract min to force consolidation → builds tree structure
+    // Extract min to force consolidation -> builds tree structure
     FibNode* top = h.extract_min();  // removes n0 (key=1)
     std::cout << "After first extract_min (key=1 removed, trees consolidated):\n";
     h.print_roots();
@@ -142,7 +142,7 @@ void test_cascading_cut() {
     h.print_roots();
 
     top = h.extract_min();
-    std::cout << "\nextract_min → id=" << top->id << "  key=" << top->key << "\n";
+    std::cout << "\nextract_min -> id=" << top->id << "  key=" << top->key << "\n";
     assert(top->key == 0.5 && "ERROR: expected key=0.5 after cascading cut path");
     delete top;
 
@@ -155,7 +155,7 @@ void test_cascading_cut() {
 
 // Test 5: Dijkstra-style relaxation (mirrors binary heap test 5)
 void test_dijkstra_simulation() {
-    section("TEST 5 – Dijkstra-style relaxation simulation");
+    section("TEST 5 - Dijkstra-style relaxation simulation");
 
     // Same small graph as binary heap test:
     // 0--(1)-->1--(2)-->2--(1)-->3
@@ -195,7 +195,7 @@ void test_dijkstra_simulation() {
     assert(u->id == 2 && u->key == 3.0);
     delete u;
 
-    h.decrease_key(p3, 3.0 + 1.0);  // 10 → 4, improve d[3]
+    h.decrease_key(p3, 3.0 + 1.0);  // 10 -> 4, improve d[3]
 
     u = h.extract_min();
     std::cout << "Settled: id=" << u->id << " dist=" << u->key << "\n";
@@ -211,9 +211,9 @@ void test_dijkstra_simulation() {
 
 
 int main() {
-    std::cout << "╔══════════════════════════════════════════╗\n";
-    std::cout << "║          FibHeap Test cases!             ║\n";
-    std::cout << "╚══════════════════════════════════════════╝\n";
+    std::cout << "--------------------------------------------\n";
+    std::cout << "|          FibHeap    Testing :)            |\n";
+    std::cout << "--------------------------------------------\n";
 
     test_basic_order();
     test_decrease_key();
@@ -221,8 +221,8 @@ int main() {
     test_cascading_cut();
     test_dijkstra_simulation();
 
-    std::cout << "\n══════════════════════════════════════════\n";
-    std::cout << "       All FibHeap tests PASSED :)\n";
-    std::cout << "══════════════════════════════════════════\n";
+    std::cout << "--------------------------------------------\n";
+    std::cout << "|          All FibHeap Tests PASSED!        |\n";
+    std::cout << "--------------------------------------------\n";
     return 0;
 }
