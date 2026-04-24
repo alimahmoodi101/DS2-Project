@@ -304,7 +304,6 @@ void test_decrease_key_count() {
 
 
 
-// ── main ─────────────────────────────────────────────────────────────────────
 int main() {
     std::cout << "╔══════════════════════════════════════════════════════╗\n";
     std::cout << "║     Dijkstra Test Suite (Binary Heap vs Fib Heap)    ║\n";
