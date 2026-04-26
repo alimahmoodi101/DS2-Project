@@ -244,7 +244,7 @@ void test_single_node() {
 //   Expected distances from 0: Manhattan distance to each node
 // ─────────────────────────────────────────────────────────────────────────────
 void test_grid_graph() {
-    section("TEST 6 - Undirected 3×3 grid (all weights=1)");
+    section("TEST 6 - Undirected 3x3 grid (all weights=1)");
 
     Graph g(9);
     // Horizontal edges
