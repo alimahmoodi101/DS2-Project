@@ -1,17 +1,17 @@
 """
-Run this ONCE on your machine to set up the 100-node cluster.
+Run this ONCE on your machine to set up the cluster.
 
 Steps:
-  1. Reads karachi_graph.txt locally, picks 100 tight nodes via BFS,
+  1. Reads karachi_graph.txt locally, picks nodes,
      writes src/cluster_graph.txt  (no internet needed for this part)
 
-  2. Fetches lat/lon + name tags from Overpass API for all 100 nodes.
+  2. Fetches lat/lon + name tags from Overpass API.
 
   3. For nodes with no name tag, calls Nominatim reverse-geocode to get
      the nearest street/area name so every node has a human-readable label.
 
 Output:
-  src/cluster_graph.txt           — the 100-node subgraph (internal IDs 0-99)
+  src/cluster_graph.txt          — the subgraph
   src/karachi_cluster_coords.json — {internal_id: {lat, lon, osm, name, label}}
 
 Usage:
@@ -19,11 +19,8 @@ Usage:
     python setup_cluster.py
 """
 
-from fileinput import filename
-from unittest import result
-
-import requests, json, time, os
-from collections import defaultdict, deque
+import requests, json, time, os, random
+from collections import defaultdict
 
 GRAPH_FILE   = os.path.join('src', 'karachi_graph.txt')
 COORDS_OUT   = os.path.join('src', 'karachi_cluster_coords.json')
@@ -42,7 +39,7 @@ HEADERS = {'User-Agent': 'DS2-Project/1.0 (student-project)'}
 # ── Step 1: Build cluster from karachi_graph.txt ─────────────────────────────
 
 def build_cluster():
-    print(f"[1/3] Reading {GRAPH_FILE} and building 100-node cluster...")
+    print(f"[1/3] Reading {GRAPH_FILE} and building {CLUSTER_SIZE}-node scattered cluster...")
     adj = defaultdict(list)
 
     with open(GRAPH_FILE) as f:
@@ -51,23 +48,35 @@ def build_cluster():
             if len(parts) >= 3:
                 u, v, w = parts[0], parts[1], float(parts[2])
                 adj[u].append((v, w))
-                adj[v].append((u, w))
+                #adj[v].append((u, w))
 
-    # Seed = most-connected node (most likely to be a central intersection)
+    # Fix: Explicitly assign the most-connected node to 'seed' to anchor in Nazimabad
     seed = max(adj, key=lambda n: len(adj[n]))
-    print(f"     Seed: OSM {seed} (degree {len(adj[seed])})")
+    print(f"     Nazimabad Seed: OSM {seed} (degree {len(adj[seed])})")
 
-    # BFS expanding to shortest-edge neighbors first → geographically tight cluster
-    visited, order, queue = {}, [], deque([seed])
+    # Randomized Frontier Expansion (Scattered/Winding shape)
+    visited, order = {}, []
+    queue = [seed] # Using a list instead of deque so we can pick randomly
+    
     visited[seed] = 0
     order.append(seed)
 
     while queue and len(order) < CLUSTER_SIZE:
-        node = queue.popleft()
-        for nbr, w in sorted(adj[node], key=lambda x: x[1]):
+        # Instead of popping the oldest node (tight circle), pick a random active node
+        # This causes the cluster to shoot out 'tentacles' across the map
+        rand_index = random.randrange(len(queue))
+        node = queue.pop(rand_index)
+        
+        # Shuffle the neighbors so it picks random directions
+        nbrs = adj[node][:]
+        random.shuffle(nbrs)
+
+        for nbr, w in nbrs:
             if nbr not in visited and len(order) < CLUSTER_SIZE:
                 visited[nbr] = len(order)
                 order.append(nbr)
+                # 80% chance to add to the queue keeps the graph sparse and wandering
+                
                 queue.append(nbr)
 
     # Write cluster_graph.txt with internal IDs
@@ -85,7 +94,7 @@ def build_cluster():
         f.write('\n'.join(lines))
 
     print(f"     {len(order)} nodes, {len(lines)} edges → {GRAPH_OUT}")
-    return order   # OSM IDs in internal-ID order (index = internal ID)
+    return order
 
 
 # ── Step 2: Fetch lat/lon + name tags from Overpass ──────────────────────────
@@ -195,7 +204,7 @@ def assemble(osm_ids, raw_coords):
                 'lon':   node['lon'],
                 'osm':   osm_id,
                 'name':  node.get('name') or '',   # raw OSM name tag (may be empty)
-                'label': label,                     # what the frontend shows
+                'label': label,                    # what the frontend shows
             }
         else:
             no_data.append(osm_id)

@@ -9,7 +9,7 @@ COORDS_FILE  = "src/karachi_cluster_coords.json"
 # Load cluster node coordinates (internal_id -> {lat, lon, osm})
 coords = {}
 if os.path.exists(COORDS_FILE):
-    with open(COORDS_FILE) as f:
+    with open(COORDS_FILE, 'r', encoding='utf-8') as f:
         coords = json.load(f)
     print(f"Loaded coordinates for {len(coords)} cluster nodes.")
 else:

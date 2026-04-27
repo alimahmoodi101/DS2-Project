@@ -17,7 +17,7 @@ def fetch_and_parse_osm():
     url = "http://overpass-api.de/api/interpreter"
     
     query = """
-    [out:json][timeout:90];
+    [out:json][timeout:300];
     (
       way["highway"]["highway"!~"pedestrian|footway|path|steps"](24.85, 67.00, 24.95, 67.10);
     );
@@ -49,23 +49,33 @@ def fetch_and_parse_osm():
             nodes[element['id']] = (element['lat'], element['lon'])
         elif element['type'] == 'way':
             if 'nodes' in element:
-                ways.append(element['nodes'])
+                # Check if the map says this is a one-way street
+                tags = element.get('tags', {})
+                is_oneway = (tags.get('oneway', 'no') == 'yes') or (tags.get('junction') == 'roundabout')
+                ways.append((element['nodes'], is_oneway))
 
     output_file = "karachi_graph.txt"
     edge_count = 0
 
     with open(output_file, 'w') as f:
-        for way in ways:
-            for i in range(len(way) - 1):
-                nodeA = way[i]
-                nodeB = way[i+1]
+        for way_nodes, is_oneway in ways:
+            for i in range(len(way_nodes) - 1):
+                nodeA = way_nodes[i]
+                nodeB = way_nodes[i+1]
                 if nodeA in nodes and nodeB in nodes:
                     lat1, lon1 = nodes[nodeA]
                     lat2, lon2 = nodes[nodeB]
 
                     weight = calculate_distance(lat1, lon1, lat2, lon2)
+                    
+                    # Always write the forward direction (A -> B)
                     f.write(f"{nodeA} {nodeB} {weight:.2f}\n")
                     edge_count += 1
+                    
+                    # If it is a normal two-way street, also write the reverse (B -> A)
+                    if not is_oneway:
+                        f.write(f"{nodeB} {nodeA} {weight:.2f}\n")
+                        edge_count += 1
 
     print(f"Success! Wrote {edge_count} edges to {output_file}")
 

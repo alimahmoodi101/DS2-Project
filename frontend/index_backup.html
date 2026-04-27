@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karachi Pathfinding Engine</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* Flexbox ensures the UI panel is always visible and the map fills the rest */
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        #map { flex-grow: 1; width: 100vw; }
+        
+        #ui-panel { 
+            flex-shrink: 0; 
+            padding: 15px 20px; 
+            background: #ffffff; 
+            text-align: center; 
+            box-shadow: 0px -4px 10px rgba(0,0,0,0.1); 
+            z-index: 1000; 
+        }
+        
+        h2 { margin: 0 0 10px 0; color: #333; }
+        p { margin: 0 0 15px 0; font-size: 16px; color: #555; }
+        
+        button { padding: 10px 20px; font-size: 15px; font-weight: bold; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; margin: 0 5px; transition: 0.2s;}
+        button:hover { background: #0056b3; }
+        .btn-clear { background: #dc3545; }
+        .btn-clear:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="ui-panel">
+        <h2>City-Scale Pathfinding Engine</h2>
+        <p><strong>Start:</strong> <span id="start-label" style="color:#007bff;">Not Selected</span> &nbsp;|&nbsp; <strong>End:</strong> <span id="end-label" style="color:#dc3545;">Not Selected</span></p>
+        <button onclick="calculateRoute()">Calculate Route</button>
+        <button class="btn-clear" onclick="clearMap()">Clear Map</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        var map = L.map('map').setView([24.8607, 67.0011], 12);
+
+        // FIX: Swapped to CartoDB Voyager tiles (Looks better, allows local file access)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
+
+        var landmarks = [
+            { name: "Habib University", lat: 24.9056, lng: 67.1385 },
+            { name: "Mazar-e-Quaid", lat: 24.8746, lng: 67.0398 },
+            { name: "Clifton Beach", lat: 24.8020, lng: 66.9830 },
+            { name: "Dolmen Mall Tariq Road", lat: 24.8732, lng: 67.0594 },
+            { name: "Jinnah International Airport", lat: 24.9015, lng: 67.1681 }
+        ];
+
+        var startPoint = null;
+        var endPoint = null;
+
+        landmarks.forEach(function(location) {
+            var marker = L.marker([location.lat, location.lng]).addTo(map);
+            marker.bindPopup("<b>" + location.name + "</b><br>Click to set as Start/End.");
+
+            marker.on('click', function() {
+                if (startPoint === null) {
+                    startPoint = location;
+                    document.getElementById("start-label").innerText = location.name;
+                } else if (endPoint === null && location.name !== startPoint.name) {
+                    endPoint = location;
+                    document.getElementById("end-label").innerText = location.name;
+                } else {
+                    alert("Both Start and End are already selected! Click 'Clear Map' to start over.");
+                }
+            });
+        });
+
+        function clearMap() {
+            startPoint = null;
+            endPoint = null;
+            document.getElementById("start-label").innerText = "Not Selected";
+            document.getElementById("end-label").innerText = "Not Selected";
+        }
+
+        function calculateRoute() {
+            if (startPoint === null || endPoint === null) {
+                alert("Please select both a Start and an End location on the map first!");
+                return;
+            }
+
+            // 1. Package the start and end points into a "JSON" object
+            var requestData = {
+                start: startPoint,
+                end: endPoint
+            };
+
+            // 2. Send the package to our Python Flask server
+            fetch('http://127.0.0.1:5000/calculate_route', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 3. Show the message Python sends back!
+                alert(data.message); 
+            })
+            .catch(error => {
+                alert("Error: Could not connect to Python. Is the Flask server running?");
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
